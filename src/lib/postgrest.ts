@@ -30,6 +30,7 @@ class PostgRESTClient {
     }
 
     console.log('PostgREST Client initialized with baseUrl:', this.baseUrl);
+    console.log('PostgREST Client headers:', this.headers);
   }
 
   private async request<T>(
@@ -38,21 +39,31 @@ class PostgRESTClient {
   ): Promise<{ data: T | null; error: PostgrestError | null }> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
-      console.log('PostgREST Request:', options.method || 'GET', url);
-      
-      const response = await fetch(url, {
+      const requestOptions = {
         ...options,
         headers: {
           ...this.headers,
           ...options.headers,
         },
-      });
+      };
 
-      console.log('PostgREST Response status:', response.status);
+      console.log('=== PostgREST Request Debug ===');
+      console.log('Method:', options.method || 'GET');
+      console.log('URL:', url);
+      console.log('Headers:', requestOptions.headers);
+      console.log('Body:', options.body);
+      console.log('================================');
+      
+      const response = await fetch(url, requestOptions);
+
+      console.log('=== PostgREST Response Debug ===');
+      console.log('Status:', response.status);
+      console.log('Status Text:', response.statusText);
+      console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('PostgREST Error response:', errorText);
+        console.error('Error Response Body:', errorText);
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         
         try {
@@ -74,7 +85,8 @@ class PostgRESTClient {
 
       const data = await response.text();
       const parsedData = data ? JSON.parse(data) : null;
-      console.log('PostgREST Success response:', parsedData);
+      console.log('Success Response Body:', parsedData);
+      console.log('=================================');
       
       return {
         data: parsedData,
@@ -108,6 +120,7 @@ class PostgRESTClient {
 
       insert: (data: any[]) => ({
         execute: async () => {
+          console.log('Attempting to insert data:', data);
           return this.request(`/${table}`, {
             method: 'POST',
             body: JSON.stringify(data),
@@ -121,6 +134,7 @@ class PostgRESTClient {
       update: (data: any) => ({
         eq: (column: string, value: any) => ({
           execute: async () => {
+            console.log('Attempting to update data:', data, 'where', column, '=', value);
             return this.request(`/${table}?${column}=eq.${value}`, {
               method: 'PATCH',
               body: JSON.stringify(data),
@@ -135,6 +149,7 @@ class PostgRESTClient {
       delete: () => ({
         eq: (column: string, value: any) => ({
           execute: async () => {
+            console.log('Attempting to delete where', column, '=', value);
             return this.request(`/${table}?${column}=eq.${value}`, {
               method: 'DELETE',
             });
