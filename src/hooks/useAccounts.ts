@@ -38,7 +38,8 @@ export function useAccounts(isAuthenticated: boolean) {
         username: account.username,
         password: account.password,
         requiresDynamicPin: account.requires_dynamic_pin,
-        createdAt: account.created_at
+        createdAt: account.created_at,
+        category: account.category || '' // Empty string if no category
       }));
 
       setAccounts(transformedAccounts);
@@ -62,7 +63,8 @@ export function useAccounts(isAuthenticated: boolean) {
         url: newAccount.url || '',  // Make sure url is not null since it's NOT NULL in DB
         username: newAccount.username || '',  // Make sure username is not null
         password: newAccount.password || '',  // Make sure password is not null
-        requires_dynamic_pin: newAccount.requiresDynamicPin || false
+        requires_dynamic_pin: newAccount.requiresDynamicPin || false,
+        category: newAccount.category || null // Allow null for no category
         // Don't include id - PostgreSQL will generate UUID automatically
         // Don't include created_at - PostgreSQL will use DEFAULT now()
       };
@@ -99,7 +101,8 @@ export function useAccounts(isAuthenticated: boolean) {
         url: account.url,
         username: account.username,
         password: account.password,
-        requires_dynamic_pin: account.requiresDynamicPin
+        requires_dynamic_pin: account.requiresDynamicPin,
+        category: account.category || null // Allow null for no category
         // Don't update id or created_at
       };
 

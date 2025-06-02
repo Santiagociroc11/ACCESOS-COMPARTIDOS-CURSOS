@@ -23,7 +23,8 @@ function App() {
     url: "",
     username: "",
     password: "",
-    requiresDynamicPin: false
+    requiresDynamicPin: false,
+    category: ""
   });
 
   const handleLogin = (password: string) => {
@@ -51,7 +52,8 @@ function App() {
         url: "",
         username: "",
         password: "",
-        requiresDynamicPin: false
+        requiresDynamicPin: false,
+        category: ""
       });
     }
   };
@@ -128,13 +130,15 @@ function App() {
               url: "",
               username: "",
               password: "",
-              requiresDynamicPin: false
+              requiresDynamicPin: false,
+              category: ""
             });
           }}
           onSave={editingAccount ? handleEditAccount : handleAddAccount}
           account={newAccount}
           setAccount={setNewAccount}
           isEditing={!!editingAccount}
+          accounts={accounts}
         />
       )}
 
