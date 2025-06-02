@@ -23,6 +23,13 @@ class PostgRESTClient {
     if (config.apiKey) {
       this.headers['Authorization'] = `Bearer ${config.apiKey}`;
     }
+
+    // Add https:// if no protocol is specified
+    if (!this.baseUrl.startsWith('http://') && !this.baseUrl.startsWith('https://')) {
+      this.baseUrl = `https://${this.baseUrl}`;
+    }
+
+    console.log('PostgREST Client initialized with baseUrl:', this.baseUrl);
   }
 
   private async request<T>(
@@ -31,6 +38,8 @@ class PostgRESTClient {
   ): Promise<{ data: T | null; error: PostgrestError | null }> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
+      console.log('PostgREST Request:', options.method || 'GET', url);
+      
       const response = await fetch(url, {
         ...options,
         headers: {
@@ -39,8 +48,11 @@ class PostgRESTClient {
         },
       });
 
+      console.log('PostgREST Response status:', response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('PostgREST Error response:', errorText);
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         
         try {
@@ -62,12 +74,14 @@ class PostgRESTClient {
 
       const data = await response.text();
       const parsedData = data ? JSON.parse(data) : null;
+      console.log('PostgREST Success response:', parsedData);
       
       return {
         data: parsedData,
         error: null,
       };
     } catch (error) {
+      console.error('PostgREST Network error:', error);
       return {
         data: null,
         error: {
