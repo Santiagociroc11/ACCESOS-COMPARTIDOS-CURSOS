@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Key, Calendar, Copy, Check, Pencil, Trash2, Lock } from 'lucide-react';
+import { ExternalLink, Key, Calendar, Copy, Check, Pencil, Trash2, Lock, Globe, User } from 'lucide-react';
 import { Account } from '../types';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -25,7 +25,7 @@ export function AccountCard({ account, onPinRequest, onEdit, onDelete }: Account
       const urlObject = new URL(url);
       return urlObject.hostname.replace('www.', '');
     } catch (error) {
-      return 'Invalid URL';
+      return 'URL inválida';
     }
   };
 
@@ -39,96 +39,142 @@ export function AccountCard({ account, onPinRequest, onEdit, onDelete }: Account
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm card-hover overflow-hidden border border-gray-100">
-      <div className="p-6">
-        <div className="flex justify-between items-start mb-4">
-          <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-            {account.name}
-            {account.requiresDynamicPin && (
-              <Lock className="w-4 h-4 text-blue-500" />
-            )}
-            <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full">
-              {getDisplayUrl(account.url)}
+    <div className="bg-white rounded-2xl shadow-sm card-hover overflow-hidden border border-gray-100 hover:border-blue-100 transition-all duration-300">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-6 border-b border-gray-100">
+        {/* Actions moved to top-right corner */}
+        <div className="flex justify-end gap-2 mb-3">
+          <button
+            onClick={onEdit}
+            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
+            title="Editar cuenta"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+            title="Eliminar cuenta"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Title and content */}
+        <div className="flex items-start gap-3">
+          <div className="bg-white p-2 rounded-lg shadow-sm flex-shrink-0">
+            <Globe className="w-5 h-5 text-blue-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            {/* Full title - no truncation */}
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-3 leading-tight">
+              {account.name}
+            </h3>
+            
+            {/* Tags and badges */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="inline-flex items-center px-2.5 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                {getDisplayUrl(account.url)}
+              </span>
+              {account.requiresDynamicPin && (
+                <span className="inline-flex items-center px-2.5 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                  <Lock className="w-3 h-3 mr-1" />
+                  PIN Dinámico
+                </span>
+              )}
+            </div>
+            
+            {/* Date */}
+            <div className="flex items-center text-xs text-gray-500 gap-1">
+              <Calendar className="w-3 h-3" />
+              <span>Creado {formatDate(account.createdAt)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-4 sm:p-6 space-y-4">
+        {/* URL */}
+        <div className="group">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <Globe className="w-4 h-4 inline mr-2" />
+            Sitio Web
+          </label>
+          <a 
+            href={account.url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-transparent hover:border-blue-200 transition-all duration-200 group"
+          >
+            <span className="text-blue-600 font-medium truncate mr-2 group-hover:text-blue-700">
+              {account.url}
             </span>
-          </h3>
+            <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+          </a>
+        </div>
+
+        {/* Username */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <User className="w-4 h-4 inline mr-2" />
+            Usuario
+          </label>
           <div className="flex items-center gap-2">
-            <button
-              onClick={onEdit}
-              className="text-blue-600 hover:text-blue-700 p-1"
-              title="Editar cuenta"
-            >
-              <Pencil className="w-4 h-4" />
-            </button>
-            <button
-              onClick={onDelete}
-              className="text-red-600 hover:text-red-700 p-1"
-              title="Eliminar cuenta"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        <div className="text-xs text-gray-500 flex items-center gap-1 mb-4">
-          <Calendar className="w-3 h-3" />
-          {formatDate(account.createdAt)}
-        </div>
-        <div className="space-y-4">
-          <div className="group">
-            <label className="text-sm font-medium text-gray-600">URL</label>
-            <a 
-              href={account.url} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="text-blue-600 hover:text-blue-700 mt-1 flex items-center gap-1 group-hover:underline"
-            >
-              {account.url} <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Usuario</label>
-            <div className="mt-1 flex items-center gap-2">
-              <p className="text-gray-800">{account.username}</p>
-              <button
-                onClick={() => copyToClipboard(account.username, `username-${account.id}`)}
-                className="text-gray-400 hover:text-gray-600"
-                title="Copiar usuario"
-              >
-                {copiedField === `username-${account.id}` ? (
-                  <Check className="w-4 h-4 text-green-500" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </button>
+            <div className="flex-1 p-3 bg-gray-50 rounded-xl border border-gray-200">
+              <p className="text-gray-900 font-mono text-sm break-all">{account.username}</p>
             </div>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-600">Contraseña</label>
-            <div className="mt-1 flex items-center gap-2">
-              <p className="font-mono bg-gray-50 py-1.5 px-3 rounded-md flex-1">{account.password}</p>
-              <button
-                onClick={() => copyToClipboard(account.password, `password-${account.id}`)}
-                className="text-gray-400 hover:text-gray-600"
-                title="Copiar contraseña"
-              >
-                {copiedField === `password-${account.id}` ? (
-                  <Check className="w-4 h-4 text-green-500" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </button>
-            </div>
-          </div>
-          {account.requiresDynamicPin && (
             <button
-              onClick={onPinRequest}
-              className="mt-4 w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-2 px-4 rounded-lg 
-                       hover:from-green-700 hover:to-green-800 transition duration-200 
-                       flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
+              onClick={() => copyToClipboard(account.username, `username-${account.id}`)}
+              className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 flex-shrink-0"
+              title="Copiar usuario"
             >
-              <Key className="w-4 h-4" /> Obtener PIN Dinámico
+              {copiedField === `username-${account.id}` ? (
+                <Check className="w-5 h-5 text-green-500" />
+              ) : (
+                <Copy className="w-5 h-5" />
+              )}
             </button>
-          )}
+          </div>
         </div>
+
+        {/* Password */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            <Lock className="w-4 h-4 inline mr-2" />
+            Contraseña
+          </label>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 p-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+              <p className="text-gray-900 font-mono text-sm break-all tracking-wider">{account.password}</p>
+            </div>
+            <button
+              onClick={() => copyToClipboard(account.password, `password-${account.id}`)}
+              className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 flex-shrink-0"
+              title="Copiar contraseña"
+            >
+              {copiedField === `password-${account.id}` ? (
+                <Check className="w-5 h-5 text-green-500" />
+              ) : (
+                <Copy className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* PIN Button */}
+        {account.requiresDynamicPin && (
+          <button
+            onClick={onPinRequest}
+            className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-4 rounded-xl 
+                     hover:from-green-600 hover:to-emerald-700 transition-all duration-300 
+                     flex items-center justify-center gap-3 shadow-lg hover:shadow-xl
+                     transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <Key className="w-5 h-5" /> 
+            <span className="font-semibold">Obtener PIN Dinámico</span>
+          </button>
+        )}
       </div>
     </div>
   );

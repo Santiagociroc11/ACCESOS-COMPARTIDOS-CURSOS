@@ -3,7 +3,7 @@ import { Account } from '../types';
 import { AccountCard } from './AccountCard';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ExternalLink, Copy, Check, Key, Pencil, Trash2, Lock } from 'lucide-react';
+import { ExternalLink, Copy, Check, Key, Pencil, Trash2, Lock, Shield, Plus } from 'lucide-react';
 
 interface AccountListProps {
   accounts: Account[];
@@ -44,125 +44,67 @@ export function AccountList({
 
   if (accounts.length === 0) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-2">No hay cuentas guardadas</h2>
-        <p className="text-gray-500 mb-6">Comience agregando una nueva cuenta</p>
+      <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-100 p-8 rounded-3xl shadow-lg mb-6">
+          <Shield className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-3">
+              ¡Bienvenido a tu Gestor!
+            </h2>
+            <p className="text-gray-600 mb-6 max-w-md">
+              Comienza agregando tu primera cuenta para gestionar tus accesos de forma segura
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+              <div className="flex items-center text-sm text-gray-500">
+                <Lock className="w-4 h-4 mr-2" />
+                Datos seguros y encriptados
+              </div>
+              <div className="flex items-center text-sm text-gray-500">
+                <Key className="w-4 h-4 mr-2" />
+                Soporte para PIN dinámico
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="text-gray-400 text-sm">
+          <Plus className="w-5 h-5 inline mr-2" />
+          Haz clic en "Agregar Cuenta" para empezar
+        </div>
       </div>
     );
   }
 
   return (
-    <>
-      {/* Table view (desktop) */}
-      <div className="hidden lg:block overflow-hidden bg-white rounded-xl shadow-sm border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nombre
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                URL
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Usuario
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Contraseña
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {accounts.map((account) => (
-              <tr key={account.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <div className="text-sm font-medium text-gray-900">{account.name}</div>
-                    {account.requiresDynamicPin && (
-                      <Lock className="w-4 h-4 text-blue-500" />
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <a
-                    href={account.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                  >
-                    {getDisplayUrl(account.url)}
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 flex items-center gap-2">
-                    {account.username}
-                    <button
-                      onClick={() => onCopy(account.username, `username-${account.id}`)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      {copiedField === `username-${account.id}` ? (
-                        <Check className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900 flex items-center gap-2">
-                    <code className="bg-gray-50 px-2 py-1 rounded">{account.password}</code>
-                    <button
-                      onClick={() => onCopy(account.password, `password-${account.id}`)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      {copiedField === `password-${account.id}` ? (
-                        <Check className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </td>
-                
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center gap-2">
-                    {account.requiresDynamicPin && (
-                      <button
-                        onClick={onPinRequest}
-                        className="text-green-600 hover:text-green-700"
-                        title="Obtener PIN"
-                      >
-                        <Key className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => onEdit(account)}
-                      className="text-blue-600 hover:text-blue-700"
-                      title="Editar cuenta"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(account.id)}
-                      className="text-red-600 hover:text-red-700"
-                      title="Eliminar cuenta"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-6">
+      {/* Stats Header */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+              Mis Cuentas
+            </h2>
+            <p className="text-gray-600">
+              {accounts.length} cuenta{accounts.length !== 1 ? 's' : ''} guardada{accounts.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {accounts.some(account => account.requiresDynamicPin) && (
+              <span className="inline-flex items-center px-3 py-1.5 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                <Key className="w-4 h-4 mr-1.5" />
+                {accounts.filter(account => account.requiresDynamicPin).length} con PIN
+              </span>
+            )}
+            <span className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
+              <Shield className="w-4 h-4 mr-1.5" />
+              Seguras
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Card view (mobile) */}
-      <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Accounts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {accounts.map((account) => (
           <AccountCard
             key={account.id}
@@ -173,6 +115,6 @@ export function AccountList({
           />
         ))}
       </div>
-    </>
+    </div>
   );
 }
