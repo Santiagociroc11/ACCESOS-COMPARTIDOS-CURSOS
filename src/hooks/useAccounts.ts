@@ -56,15 +56,22 @@ export function useAccounts(isAuthenticated: boolean) {
       setLoading(true);
       setError(null);
 
+      // Prepare data exactly as PostgreSQL expects it
+      const accountData = {
+        name: newAccount.name,
+        url: newAccount.url || '',  // Make sure url is not null since it's NOT NULL in DB
+        username: newAccount.username || '',  // Make sure username is not null
+        password: newAccount.password || '',  // Make sure password is not null
+        requires_dynamic_pin: newAccount.requiresDynamicPin || false
+        // Don't include id - PostgreSQL will generate UUID automatically
+        // Don't include created_at - PostgreSQL will use DEFAULT now()
+      };
+
+      console.log('Sending account data to PostgREST:', accountData);
+
       const { error: postgrestError } = await postgrest
         .from('accounts')
-        .insert([{
-          name: newAccount.name,
-          url: newAccount.url,
-          username: newAccount.username,
-          password: newAccount.password,
-          requires_dynamic_pin: newAccount.requiresDynamicPin
-        }])
+        .insert([accountData])
         .execute();
 
       if (postgrestError) {
@@ -87,15 +94,18 @@ export function useAccounts(isAuthenticated: boolean) {
       setLoading(true);
       setError(null);
 
+      const updateData = {
+        name: account.name,
+        url: account.url,
+        username: account.username,
+        password: account.password,
+        requires_dynamic_pin: account.requiresDynamicPin
+        // Don't update id or created_at
+      };
+
       const { error: postgrestError } = await postgrest
         .from('accounts')
-        .update({
-          name: account.name,
-          url: account.url,
-          username: account.username,
-          password: account.password,
-          requires_dynamic_pin: account.requiresDynamicPin
-        })
+        .update(updateData)
         .eq('id', account.id)
         .execute();
 
