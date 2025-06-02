@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Account } from '../types';
-import { supabase } from '../lib/supabase';
+import { postgrest } from '../lib/postgrest';
 
 export function useAccounts(isAuthenticated: boolean) {
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -20,17 +20,18 @@ export function useAccounts(isAuthenticated: boolean) {
       setLoading(true);
       setError(null);
 
-      const { data, error: supabaseError } = await supabase
+      const { data, error: postgrestError } = await postgrest
         .from('accounts')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .execute();
 
-      if (supabaseError) {
-        throw supabaseError;
+      if (postgrestError) {
+        throw new Error(postgrestError.message);
       }
 
       // Transform the data to match our Account type
-      const transformedAccounts = (data || []).map(account => ({
+      const transformedAccounts = (data || []).map((account: any) => ({
         id: account.id,
         name: account.name,
         url: account.url,
@@ -55,7 +56,7 @@ export function useAccounts(isAuthenticated: boolean) {
       setLoading(true);
       setError(null);
 
-      const { error: supabaseError } = await supabase
+      const { error: postgrestError } = await postgrest
         .from('accounts')
         .insert([{
           name: newAccount.name,
@@ -63,10 +64,11 @@ export function useAccounts(isAuthenticated: boolean) {
           username: newAccount.username,
           password: newAccount.password,
           requires_dynamic_pin: newAccount.requiresDynamicPin
-        }]);
+        }])
+        .execute();
 
-      if (supabaseError) {
-        throw supabaseError;
+      if (postgrestError) {
+        throw new Error(postgrestError.message);
       }
 
       await fetchAccounts();
@@ -85,7 +87,7 @@ export function useAccounts(isAuthenticated: boolean) {
       setLoading(true);
       setError(null);
 
-      const { error: supabaseError } = await supabase
+      const { error: postgrestError } = await postgrest
         .from('accounts')
         .update({
           name: account.name,
@@ -94,10 +96,11 @@ export function useAccounts(isAuthenticated: boolean) {
           password: account.password,
           requires_dynamic_pin: account.requiresDynamicPin
         })
-        .eq('id', account.id);
+        .eq('id', account.id)
+        .execute();
 
-      if (supabaseError) {
-        throw supabaseError;
+      if (postgrestError) {
+        throw new Error(postgrestError.message);
       }
 
       await fetchAccounts();
@@ -116,13 +119,14 @@ export function useAccounts(isAuthenticated: boolean) {
       setLoading(true);
       setError(null);
 
-      const { error: supabaseError } = await supabase
+      const { error: postgrestError } = await postgrest
         .from('accounts')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .execute();
 
-      if (supabaseError) {
-        throw supabaseError;
+      if (postgrestError) {
+        throw new Error(postgrestError.message);
       }
 
       await fetchAccounts();
