@@ -4,7 +4,7 @@ import { AccountCard } from './AccountCard';
 import { useCategories } from '../hooks/useCategories';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { ExternalLink, Copy, Check, Key, Pencil, Trash2, Lock, Shield, Plus, Search, Hash, X } from 'lucide-react';
+import { ExternalLink, Copy, Check, Key, Pencil, Trash2, Lock, Shield, Plus, Search, Hash, X, Grid3X3, List, Globe, User, Calendar } from 'lucide-react';
 
 interface AccountListProps {
   accounts: Account[];
@@ -25,6 +25,7 @@ export function AccountList({
 }: AccountListProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const { existingCategories, getCategoryStats, getMostUsedCategories } = useCategories(accounts);
 
   const getDisplayUrl = (url: string): string => {
@@ -103,6 +104,124 @@ export function AccountList({
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // Componente para vista de lista
+  const AccountListItem = ({ account }: { account: Account }) => {
+    const categoryColors = account.category ? getCategoryColor(account.category) : { bg: 'bg-gray-100', text: 'text-gray-700' };
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm hover:shadow-md border border-gray-100 hover:border-blue-200 transition-all duration-300 p-4">
+        <div className="flex items-center justify-between gap-4">
+          {/* Left section - Main info */}
+          <div className="flex items-center gap-4 flex-1 min-w-0">
+            {/* Icon */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-2 rounded-lg flex-shrink-0">
+              <Globe className="w-5 h-5 text-blue-600" />
+            </div>
+            
+            {/* Account details */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-gray-900 truncate">{account.name}</h3>
+                {account.category && (
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${categoryColors.bg} ${categoryColors.text}`}>
+                    {account.category}
+                  </span>
+                )}
+                {account.requiresDynamicPin && (
+                  <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                    <Lock className="w-3 h-3 mr-1" />
+                    PIN
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-4 text-sm text-gray-500">
+                <span className="flex items-center gap-1">
+                  <Globe className="w-3 h-3" />
+                  {getDisplayUrl(account.url)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  {account.username}
+                </span>
+                <span className="hidden sm:flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {formatDate(account.createdAt)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right section - Actions */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Copy buttons */}
+            <button
+              onClick={() => onCopy(account.username, `username-${account.id}`)}
+              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+              title="Copiar usuario"
+            >
+              {copiedField === `username-${account.id}` ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </button>
+            <button
+              onClick={() => onCopy(account.password, `password-${account.id}`)}
+              className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+              title="Copiar contraseña"
+            >
+              {copiedField === `password-${account.id}` ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Key className="w-4 h-4" />
+              )}
+            </button>
+            
+            {/* PIN Button */}
+            {account.requiresDynamicPin && (
+              <button
+                onClick={onPinRequest}
+                className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-all duration-200"
+                title="Obtener PIN dinámico"
+              >
+                <Key className="w-4 h-4" />
+              </button>
+            )}
+
+            {/* URL Button */}
+            <a
+              href={account.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200"
+              title="Ir al sitio web"
+            >
+              <ExternalLink className="w-4 h-4" />
+            </a>
+
+            {/* Edit Button */}
+            <button
+              onClick={() => onEdit(account)}
+              className="p-2 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-all duration-200"
+              title="Editar cuenta"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+
+            {/* Delete Button */}
+            <button
+              onClick={() => onDelete(account.id)}
+              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+              title="Eliminar cuenta"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (accounts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
@@ -152,7 +271,36 @@ export function AccountList({
               }
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* View Toggle */}
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'grid'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Vista de tarjetas"
+              >
+                <Grid3X3 className="w-4 h-4" />
+                <span className="hidden sm:inline">Tarjetas</span>
+              </button>
+              <button
+                onClick={() => setViewMode('list')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                  viewMode === 'list'
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Vista de lista"
+              >
+                <List className="w-4 h-4" />
+                <span className="hidden sm:inline">Lista</span>
+              </button>
+            </div>
+
+            {/* Stats badges */}
             <span className="inline-flex items-center px-3 py-1.5 bg-blue-100 text-blue-800 text-sm font-medium rounded-full">
               <Shield className="w-4 h-4 mr-1.5" />
               {stats.categories} categoría{stats.categories !== 1 ? 's' : ''}
@@ -257,20 +405,28 @@ export function AccountList({
         )}
       </div>
 
-      {/* Accounts Grid */}
+      {/* Accounts Display */}
       <div>
         {filteredAccounts.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {filteredAccounts.map((account) => (
-              <AccountCard
-                key={account.id}
-                account={account}
-                onPinRequest={onPinRequest}
-                onEdit={() => onEdit(account)}
-                onDelete={() => onDelete(account.id)}
-              />
-            ))}
-          </div>
+          viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+              {filteredAccounts.map((account) => (
+                <AccountCard
+                  key={account.id}
+                  account={account}
+                  onPinRequest={onPinRequest}
+                  onEdit={() => onEdit(account)}
+                  onDelete={() => onDelete(account.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredAccounts.map((account) => (
+                <AccountListItem key={account.id} account={account} />
+              ))}
+            </div>
+          )
         ) : (
           <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
             <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
